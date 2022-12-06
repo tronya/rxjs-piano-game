@@ -1,0 +1,26 @@
+<mat-grid-list cols="1" rowHeight="100px">
+  <mat-grid-tile>
+    <div class="row">
+      <button mat-button (click)="buttonPress('UP')" mat-fab>UP</button>
+    </div>
+  </mat-grid-tile>
+  <mat-grid-tile>
+    <div class="row">
+      <button mat-button color="accent" (click)="buttonPress('LEFT')" mat-fab>
+        LEFT
+      </button>
+      <button mat-button color="primary" (click)="buttonPress('DOWN')" mat-fab>
+        DOWN
+      </button>
+      <button mat-button color="warn" (click)="buttonPress('RIGHT')" mat-fab>
+        RIGHT
+      </button>
+    </div>
+  </mat-grid-tile>
+
+  <mat-grid-tile>
+    <div class="row">
+      <button mat-button (click)="gameStart()">Start</button>
+    </div>
+  </mat-grid-tile>
+</mat-grid-list>
