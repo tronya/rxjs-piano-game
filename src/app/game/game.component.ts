@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { map } from 'rxjs';
 import { AudioService } from './audio.service';
 import { GamePosibleDirrections, MIDI_NOTES } from './game.model';
 import { GameService } from './game.service';
+import { InputService } from './input.service';
 
 @Component({
   selector: 'app-game',
@@ -9,27 +11,38 @@ import { GameService } from './game.service';
   styleUrls: ['./game.component.scss'],
 })
 export class GameComponent implements OnInit {
+  public keys = this.gameService.gameKeysChain$;
+
   constructor(
     public gameService: GameService,
-    private audioService: AudioService
+    private audioService: AudioService,
+    private inputService: InputService
   ) {}
 
   public buttonPress(key: GamePosibleDirrections) {
     console.log(`${key} pressed`);
     this.audioService.play(MIDI_NOTES[key]);
+    this.gameService.pushKeyNote(key);
   }
 
   public gameStart() {
-    this.gameService.startGame().subscribe((flow: GamePosibleDirrections) => {
-      console.info('==>', flow);
-      this.audioService.play(MIDI_NOTES[flow]);
-    });
+    this.gameService.startGame();
   }
+
   ngOnInit(): void {
-    this.gameService.keyAction.subscribe((direction) => {
+    this.inputService.keyAction.subscribe((direction) => {
       this.buttonPress(direction);
     });
 
-    //this.gameService.mouseCliked.subscribe((event: Event) => console.log("mouse", event))
+    this.gameService
+      .gameChain()
+      .pipe(
+        map((note: GamePosibleDirrections) => {
+          this.audioService.play(MIDI_NOTES[note]);
+        })
+      )
+      .subscribe((flow) => {
+        console.info('==>', flow);
+      });
   }
 }

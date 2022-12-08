@@ -10,6 +10,7 @@ import { GameService } from './game/game.service';
 import { MidiService } from './game/midi.service';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { AudioService } from './game/audio.service';
+import { InputService } from './game/input.service';
 @NgModule({
   declarations: [AppComponent, GameComponent],
   imports: [
@@ -19,7 +20,7 @@ import { AudioService } from './game/audio.service';
     MatButtonModule,
     MatGridListModule,
   ],
-  providers: [GameService, MidiService, AudioService],
+  providers: [GameService, MidiService, AudioService, InputService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

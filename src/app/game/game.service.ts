@@ -1,74 +1,64 @@
 import { Injectable } from '@angular/core';
 import {
-  BehaviorSubject,
   concatMap,
-  delay,
-  filter,
-  from,
-  fromEvent,
-  interval,
-  map,
-  merge,
-  Observable,
+  delay, Observable,
   of,
-  switchMap,
-  tap,
+  Subject,
+  switchMap
 } from 'rxjs';
 import { GameAllowedKeys, GamePosibleDirrections } from './game.model';
 
 @Injectable()
 export class GameService {
   private gameKeysChain: GamePosibleDirrections[] = [];
-
-  public keyAction: Observable<GamePosibleDirrections> =
-    fromEvent<KeyboardEvent>(document, 'keydown').pipe(
-      // distinctUntilChanged((a, b) => a.code === b.code && a.type === b.type),
-      filter((event) => Object.keys(GameAllowedKeys).includes(event.code)),
-      map(
-        (event) => GameAllowedKeys[event.code as keyof typeof GameAllowedKeys]
-      )
-    );
+  public gameKeysChain$: Subject<GamePosibleDirrections[]> = new Subject();
+  private iteration: number = 0;
 
   public randomIntFromInterval(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  public mouseCliked: Observable<Event> = merge(
-    fromEvent(document, 'mouseup'),
-    fromEvent(document, 'mousedown'),
-    fromEvent(document, 'mousemove')
-  ).pipe(
-    map((event) => {
-      console.log(event);
-      return event;
-    })
-  );
+  public pushKeyNote(key: GamePosibleDirrections) {
+    if (this.gameKeysChain[this.iteration] === key) {
+      console.log('good');
+      this.iteration++;
+    } else {
+      console.log('bad');
+      this.iteration = 0;
+    }
+
+    if (this.gameKeysChain.length === this.iteration) {
+      console.log('this game raund is finished');
+      this.pushNoteToChain();
+      this.iteration = 0;
+    }
+  }
 
   public getRandomKey(): GamePosibleDirrections {
     const randomNumber = this.randomIntFromInterval(0, 3);
-    console.log(randomNumber);
     const possibleKeys: GamePosibleDirrections[] =
       Object.values(GameAllowedKeys);
-
-    console.log(possibleKeys[randomNumber]);
     return possibleKeys[randomNumber];
   }
 
-  public pushKeyToChain() {
-    return this.gameKeysChain.push(this.getRandomKey());
+  public pushNoteToChain() {
+    this.gameKeysChain.push(this.getRandomKey());
+    this.gameKeysChain$.next(this.gameKeysChain);
   }
 
-  public startGame(): Observable<GamePosibleDirrections> {
-    console.log(
-      '%c Game started',
-      'color:green; font-size:24px; display:block; text-transform: uppercase'
-    );
-    this.pushKeyToChain();
-
-    console.log(this.gameKeysChain)
-
-    return from(this.gameKeysChain).pipe(
-      concatMap((val) => of(val as GamePosibleDirrections).pipe(delay(1000)))
+  public startGame() {
+    if (!this.gameKeysChain.length) {
+      this.pushNoteToChain();
+    }
+  }
+  public gameChain(): Observable<GamePosibleDirrections> {
+    return this.gameKeysChain$.pipe(
+      delay(1000),
+      switchMap((r) => r),
+      concatMap((val) => {
+        console.log(val);
+        return of(val).pipe(delay(1000));
+      })
     );
   }
 }
